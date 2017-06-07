@@ -15,7 +15,7 @@ open class SharedSequence<Traits : SharedSequenceTraits, Element>(source: Observ
                                                                   internal val traits: Traits) {
   companion object {}
   
-  internal val source: Observable<Element> = traits.share(source)
+  internal val source: Observable<Element> = traits.share(source.observeOn(traits.scheduler))
   
   class Safe<Traits : SharedSequenceTraits, Element>(source: Observable<Element>,
                                                      traits: Traits) : SharedSequence<Traits, Element>(
