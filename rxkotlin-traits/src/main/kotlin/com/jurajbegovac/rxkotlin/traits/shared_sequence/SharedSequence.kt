@@ -43,8 +43,14 @@ fun <Element, Traits : SharedSequenceTraits> SharedSequence<Traits, Element>.fil
 fun <Element, Traits : SharedSequenceTraits> SharedSequence<Traits, Element>.distinctUntilChanged(): SharedSequence<Traits, Element> =
     SharedSequence(this.source.distinctUntilChanged(), this.traits)
 
+fun <Element, Traits : SharedSequenceTraits> SharedSequence.Safe<Traits, Element>.distinctUntilChanged(): SharedSequence.Safe<Traits, Element> =
+    SharedSequence.Safe(this.source.distinctUntilChanged(), this.traits)
+
 fun <Element, Traits : SharedSequenceTraits> SharedSequence<Traits, Element>.startWith(item: Element): SharedSequence<Traits, Element> =
     SharedSequence(this.source.startWith(item), this.traits)
+
+fun <Element, Traits : SharedSequenceTraits> SharedSequence.Safe<Traits, Element>.startWith(item: Element): SharedSequence.Safe<Traits, Element> =
+    SharedSequence.Safe(this.source.startWith(item), this.traits)
 
 fun <Element, Traits : SharedSequenceTraits, Result> SharedSequence<Traits, Element>.scan(
     initialValue: Result,
