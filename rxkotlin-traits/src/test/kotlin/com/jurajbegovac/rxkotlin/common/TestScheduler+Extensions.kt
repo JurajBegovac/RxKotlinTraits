@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit
 
 /** Created by juraj begovac on 06/06/2017. */
 
-
 sealed class Event<T>(val delayDuration: Long) {
   data class Next<T>(val delay: Long, val value: T) : Event<T>(delay)
   data class Error<T>(val delay: Long, val error: Throwable) : Event<T>(delay)

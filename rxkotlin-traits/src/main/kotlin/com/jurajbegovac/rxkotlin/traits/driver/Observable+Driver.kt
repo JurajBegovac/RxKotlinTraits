@@ -1,18 +1,30 @@
 package com.jurajbegovac.rxkotlin.traits.driver
 
-import com.jurajbegovac.rxkotlin.traits.shared_sequence.SharedSequence
+import com.jurajbegovac.rxkotlin.traits.shared_sequence.empty
 import rx.Observable
 
 /** Created by juraj begovac on 06/06/2017. */
 
-fun <Element> Observable<Element>.asDriver(onErrorJustReturn: Element): Driver<Element> =
-    SharedSequence(this.onErrorReturn { onErrorJustReturn }
-                       .observeOn(DriverTraits.scheduler), DriverTraits)
+fun <Element> Observable<Element>.asDriver(onErrorJustReturn: Element): Driver<Element> {
+  val source = this
+      .observeOn(DriverSharingStrategy.scheduler)
+      .onErrorReturn { onErrorJustReturn }
+  return Driver(source, DriverSharingStrategy)
+}
 
-fun <Element> Observable<Element>.asDriver(onErrorDriveWith: (Throwable) -> Driver<Element>): Driver<Element> =
-    SharedSequence(this.onErrorResumeNext { onErrorDriveWith(it).source }
-                       .observeOn(DriverTraits.scheduler), DriverTraits)
+fun <Element> Observable<Element>.asDriver(onErrorDriveWith: Driver<Element>): Driver<Element> {
+  val source = this
+      .observeOn(DriverSharingStrategy.scheduler)
+      .onErrorResumeNext(onErrorDriveWith.asObservable())
+  return Driver(source, DriverSharingStrategy)
+}
+
+fun <Element> Observable<Element>.asDriver(onErrorRecover: (Throwable) -> Driver<Element>): Driver<Element> {
+  val source = this
+      .observeOn(DriverSharingStrategy.scheduler)
+      .onErrorResumeNext { onErrorRecover(it).asObservable() }
+  return Driver(source, DriverSharingStrategy)
+}
 
 fun <Element> Observable<Element>.asDriverCompleteOnError(): Driver<Element> =
-    SharedSequence(this.onErrorResumeNext { Observable.empty() }
-                       .observeOn(DriverTraits.scheduler), DriverTraits)
+    asDriver(onErrorRecover = { DriverSharingStrategy.empty() })
