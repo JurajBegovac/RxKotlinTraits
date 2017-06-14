@@ -1,24 +1,25 @@
 package com.jurajbegovac.rxkotlin.traits
 
 import com.jurajbegovac.rxkotlin.common.TestSchedulerRule
-import com.jurajbegovac.rxkotlin.common.advanceTimeBy
-import com.jurajbegovac.rxkotlin.common.scheduleAt
 import com.jurajbegovac.rxkotlin.traits.driver.DriverSharingStrategy
 import com.jurajbegovac.rxkotlin.traits.driver.asDriver
 import com.jurajbegovac.rxkotlin.traits.driver.asDriverCompleteOnError
 import com.jurajbegovac.rxkotlin.traits.driver.drive
 import com.jurajbegovac.rxkotlin.traits.shared_sequence.*
-import org.junit.*
+import common.*
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import rx.Observable
-import rx.observers.TestSubscriber
 import rx.schedulers.TestScheduler
-import java.util.*
 
 /** Created by juraj begovac on 06/06/2017. */
 
 class DriverTest {
   var scheduler = TestScheduler()
-  var observer = TestSubscriber<Int>()
+  var observer = MyTestSubscriber<Int>(scheduler)
   
   @get:Rule
   val testSchedulerRule = TestSchedulerRule()
@@ -26,7 +27,7 @@ class DriverTest {
   @Before
   fun setUp() {
     this.scheduler = testSchedulerRule.testScheduler
-    this.observer = TestSubscriber()
+    this.observer = MyTestSubscriber(scheduler)
   }
   
   @After
@@ -51,7 +52,8 @@ class DriverTest {
     }
     this.scheduler.advanceTimeBy(10)
     
-    Assert.assertEquals(arrayListOf(1, 2, 3, 4), observer.onNextEvents)
+    assertEquals(listOf(next(0, 1), next(0, 2), next(0, 3), next(0, 4), complete(0)),
+                 observer.events())
   }
   
   @Test
@@ -69,7 +71,8 @@ class DriverTest {
     }
     this.scheduler.advanceTimeBy(10)
     
-    Assert.assertEquals(arrayListOf(1, 2, 3, 4, 7), observer.onNextEvents)
+    assertEquals(listOf(next(0, 1), next(0, 2), next(0, 3), next(0, 4), next(0, 7), complete(0)),
+                 observer.events())
   }
   
   @Test
@@ -85,8 +88,22 @@ class DriverTest {
     }
     this.scheduler.advanceTimeBy(10)
     
-    Assert.assertEquals(arrayListOf(1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
-                        observer.onNextEvents)
+    assertEquals(listOf(next(0, 1),
+                        next(0, 2),
+                        next(0, 3),
+                        next(0, 4),
+                        next(0, 1),
+                        next(0, 2),
+                        next(0, 3),
+                        next(0, 4),
+                        next(0, 5),
+                        next(0, 6),
+                        next(0, 7),
+                        next(0, 8),
+                        next(0, 9),
+                        next(0, 10),
+                        complete(0)),
+                 observer.events())
   }
   
   @Test
@@ -97,7 +114,17 @@ class DriverTest {
     }
     this.scheduler.advanceTimeBy(10)
     
-    Assert.assertEquals(arrayListOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), observer.onNextEvents)
+    assertEquals(arrayListOf(next(0, 1),
+                             next(0, 2),
+                             next(0, 3),
+                             next(0, 4),
+                             next(0, 5),
+                             next(0, 6),
+                             next(0, 7),
+                             next(0, 8),
+                             next(0, 9),
+                             next(0, 10),
+                             complete(0)), observer.events())
   }
   
   @Test
@@ -112,7 +139,7 @@ class DriverTest {
     }
     this.scheduler.advanceTimeBy(10)
     
-    Assert.assertEquals(ArrayList<Int>(0), observer.onNextEvents)
+    assertEquals(listOf(complete(0)), observer.events())
   }
   
   @Test
@@ -127,7 +154,7 @@ class DriverTest {
     }
     this.scheduler.advanceTimeBy(10)
     
-    Assert.assertEquals(arrayListOf<Int>(), observer.onNextEvents)
+    assertEquals(listOf(complete(0)), observer.events())
   }
   
   @Test
@@ -139,7 +166,18 @@ class DriverTest {
     }
     this.scheduler.advanceTimeBy(10)
     
-    Assert.assertEquals(arrayListOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), observer.onNextEvents)
+    assertEquals(listOf(next(0, 1),
+                        next(0, 2),
+                        next(0, 3),
+                        next(0, 4),
+                        next(0, 5),
+                        next(0, 6),
+                        next(0, 7),
+                        next(0, 8),
+                        next(0, 9),
+                        next(0, 10),
+                        complete(0)),
+                 observer.events())
   }
   
   @Test
@@ -155,7 +193,8 @@ class DriverTest {
           .drive(observer)
     }
     this.scheduler.advanceTimeBy(10)
-    Assert.assertEquals(arrayListOf(1, 2, 3, 4), observer.onNextEvents)
+    assertEquals(listOf(next(0, 1), next(0, 2), next(0, 3), next(0, 4), complete(0)),
+                 observer.events())
   }
   
   @Test
@@ -173,7 +212,8 @@ class DriverTest {
     
     this.scheduler.advanceTimeBy(10)
     
-    Assert.assertEquals(arrayListOf(1, 2, 3, 4, 7), observer.onNextEvents)
+    assertEquals(listOf(next(0, 1), next(0, 2), next(0, 3), next(0, 4), next(0, 7), complete(0)),
+                 observer.events())
   }
   
   @Test
@@ -190,7 +230,17 @@ class DriverTest {
     
     this.scheduler.advanceTimeBy(10)
     
-    Assert.assertEquals(arrayListOf(1, 2, 3, 4, 7, 6, 7, 8, 9, 10), observer.onNextEvents)
+    assertEquals(listOf(next(0, 1),
+                        next(0, 2),
+                        next(0, 3),
+                        next(0, 4),
+                        next(0, 7),
+                        next(0, 6),
+                        next(0, 7),
+                        next(0, 8),
+                        next(0, 9),
+                        next(0, 10),
+                        complete(0)), observer.events())
   }
   
   @Test
@@ -206,7 +256,16 @@ class DriverTest {
     
     this.scheduler.advanceTimeBy(10)
     
-    Assert.assertEquals(arrayListOf(1, 2, 3, 4, 6, 7, 8, 9, 10), observer.onNextEvents)
+    assertEquals(listOf(next(0, 1),
+                        next(0, 2),
+                        next(0, 3),
+                        next(0, 4),
+                        next(0, 6),
+                        next(0, 7),
+                        next(0, 8),
+                        next(0, 9),
+                        next(0, 10),
+                        complete(0)), observer.events())
   }
   
   @Test
@@ -222,6 +281,15 @@ class DriverTest {
     
     this.scheduler.advanceTimeBy(10)
     
-    Assert.assertEquals(arrayListOf(1, 2, 3, 4, 6, 7, 8, 9, 10), observer.onNextEvents)
+    assertEquals(listOf(next(0, 1),
+                        next(0, 2),
+                        next(0, 3),
+                        next(0, 4),
+                        next(0, 6),
+                        next(0, 7),
+                        next(0, 8),
+                        next(0, 9),
+                        next(0, 10),
+                        complete(0)), observer.events())
   }
 }
