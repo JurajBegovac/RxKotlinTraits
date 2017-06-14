@@ -7,7 +7,7 @@ import com.jurajbegovac.rxkotlin.traits.driver.DriverSharingStrategy
 import com.jurajbegovac.rxkotlin.traits.driver.asDriver
 import com.jurajbegovac.rxkotlin.traits.driver.asDriverCompleteOnError
 import com.jurajbegovac.rxkotlin.traits.driver.drive
-import com.jurajbegovac.rxkotlin.traits.shared_sequence.defer
+import com.jurajbegovac.rxkotlin.traits.shared_sequence.*
 import org.junit.*
 import rx.Observable
 import rx.observers.TestSubscriber
@@ -174,5 +174,54 @@ class DriverTest {
     this.scheduler.advanceTimeBy(10)
     
     Assert.assertEquals(arrayListOf(1, 2, 3, 4, 7), observer.onNextEvents)
+  }
+  
+  @Test
+  fun map() {
+    val returnOnError = 7
+    observableRange()
+        .asDriverCompleteOnError()
+        .map(returnOnError) {
+          if (it == 5)
+            throw Exception()
+          else it
+        }
+        .drive(observer)
+    
+    this.scheduler.advanceTimeBy(10)
+    
+    Assert.assertEquals(arrayListOf(1, 2, 3, 4, 7, 6, 7, 8, 9, 10), observer.onNextEvents)
+  }
+  
+  @Test
+  fun filter() {
+    observableRange()
+        .asDriverCompleteOnError()
+        .filter {
+          if (it == 5)
+            throw Exception()
+          else true
+        }
+        .drive(observer)
+    
+    this.scheduler.advanceTimeBy(10)
+    
+    Assert.assertEquals(arrayListOf(1, 2, 3, 4, 6, 7, 8, 9, 10), observer.onNextEvents)
+  }
+  
+  @Test
+  fun flatmap() {
+    observableRange()
+        .asDriverCompleteOnError()
+        .flatmap {
+          if (it == 5)
+            throw Exception()
+          else DriverSharingStrategy.just(it)
+        }
+        .drive(observer)
+    
+    this.scheduler.advanceTimeBy(10)
+    
+    Assert.assertEquals(arrayListOf(1, 2, 3, 4, 6, 7, 8, 9, 10), observer.onNextEvents)
   }
 }

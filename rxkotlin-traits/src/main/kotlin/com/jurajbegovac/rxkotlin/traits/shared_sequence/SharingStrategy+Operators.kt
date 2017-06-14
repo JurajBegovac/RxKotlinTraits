@@ -1,6 +1,5 @@
 package com.jurajbegovac.rxkotlin.traits.shared_sequence
 
-import com.jurajbegovac.rxkotlin.traits.observable.debug
 import rx.Observable
 
 /** Created by juraj begovac on 08/06/2017. */
@@ -17,20 +16,33 @@ fun <SharingStrategy : SharingStrategyProtocol, Element> SharingStrategy.never()
     SharedSequence(Observable.never<Element>().subscribeOn(this.scheduler), this)
 
 // operations
-// todo change this try catch - on error this stream completes
-fun <SharingStrategy : SharingStrategyProtocol, Element> SharingStrategy.defer(factory: () -> SharedSequence<SharingStrategy, Element>) =
-    SharedSequence(Observable.defer {
-      try {
-        factory().source
-      } catch (e: Exception) {
-        Observable.empty<Element>()
-      }
-    }, this)
+fun <SharingStrategy : SharingStrategyProtocol, Element> SharingStrategy.defer(
+    errorValue: SharedSequence<SharingStrategy, Element> = empty(),
+    factory: () -> SharedSequence<SharingStrategy, Element>): SharedSequence<SharingStrategy, Element> {
+  val source = Observable.defer {
+    try {
+      factory().source
+    } catch (e: Exception) {
+      errorValue.source
+    }
+  }
+  return SharedSequence(source, this)
+}
+
 
 fun <SharingStrategy : SharingStrategyProtocol, Element> SharingStrategy.merge(sources: Iterable<SharedSequence<SharingStrategy, out Element>>) =
     SharedSequence(Observable.merge(sources.map { it.source }), this)
 
-
-fun <Element, Traits : SharingStrategyProtocol> SharedSequence<Traits, Element>.debug(id: String,
-                                                                                      logger: (String) -> Unit): SharedSequence<Traits, Element> =
-    SharedSequence(this.source.debug(id, logger), this.sharingStrategy)
+fun <SharingStrategy : SharingStrategyProtocol, Element, Result> SharingStrategy.zip(
+    errorValue: Result,
+    sources: Iterable<SharedSequence<SharingStrategy, out Element>>,
+    zipFunction: (Array<Any>) -> Result): SharedSequence<SharingStrategy, Result> {
+  val source = Observable.zip(sources.map { it.source }) {
+    try {
+      zipFunction(it)
+    } catch (e: Throwable) {
+      errorValue
+    }
+  }
+  return SharedSequence(source, this)
+}
