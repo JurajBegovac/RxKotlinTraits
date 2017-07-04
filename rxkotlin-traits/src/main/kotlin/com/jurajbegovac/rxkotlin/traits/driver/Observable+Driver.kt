@@ -1,6 +1,7 @@
 package com.jurajbegovac.rxkotlin.traits.driver
 
 import com.jurajbegovac.rxkotlin.traits.shared_sequence.empty
+import com.jurajbegovac.rxkotlin.traits.shared_sequence.reportError
 import rx.Observable
 
 /** Created by juraj begovac on 06/06/2017. */
@@ -19,10 +20,18 @@ fun <Element> Observable<Element>.asDriver(onErrorDriveWith: Driver<Element>): D
   return Driver(source, DriverSharingStrategy)
 }
 
-fun <Element> Observable<Element>.asDriver(onErrorRecover: (Throwable) -> Driver<Element>): Driver<Element> {
+fun <Element> Observable<Element>.asDriver(errorValue: Driver<Element> = DriverSharingStrategy.empty(),
+                                           onErrorRecover: (Throwable) -> Driver<Element>): Driver<Element> {
   val source = this
       .observeOn(DriverSharingStrategy.scheduler)
-      .onErrorResumeNext { onErrorRecover(it).asObservable() }
+      .onErrorResumeNext {
+        try {
+          onErrorRecover(it).asObservable()
+        } catch (e: Exception) {
+          reportError(e)
+          errorValue.source
+        }
+      }
   return Driver(source, DriverSharingStrategy)
 }
 

@@ -1,7 +1,6 @@
 package com.jurajbegovac.rxkotlin.traits.shared_sequence
 
 import com.jurajbegovac.rxkotlin.traits.observable.debug
-import rx.Observable
 
 /** Created by juraj begovac on 13/06/2017. */
 
@@ -11,17 +10,19 @@ fun <Element, SharingStrategy : SharingStrategyProtocol> SharedSequence<SharingS
     SharedSequence(source.debug(id, logger), sharingStrategy)
 
 fun <Element, SharingStrategy : SharingStrategyProtocol, Result> SharedSequence<SharingStrategy, Element>.map(
-    errorValue: Result,
+    errorValue: Result? = null,
     func: (Element) -> Result): SharedSequence<SharingStrategy, Result> {
-  val source = this.source
-      .map {
-        try {
-          func(it)
-        } catch (e: Throwable) {
-          errorValue
-        }
-      }
-  return SharedSequence(source, this.sharingStrategy)
+  val errorStream = if (errorValue != null) sharingStrategy.just(errorValue) else sharingStrategy.empty()
+  return flatMap(errorStream,
+                 { element ->
+                   try {
+                     val result = func(element)
+                     sharingStrategy.just(result)
+                   } catch (e: Throwable) {
+                     reportError(e)
+                     errorStream
+                   }
+                 })
 }
 
 fun <Element, SharingStrategy : SharingStrategyProtocol> SharedSequence<SharingStrategy, Element>.filter(
@@ -32,6 +33,7 @@ fun <Element, SharingStrategy : SharingStrategyProtocol> SharedSequence<SharingS
         try {
           predicate(it)
         } catch (e: Throwable) {
+          reportError(e)
           errorValue
         }
       }
@@ -46,6 +48,7 @@ fun <Element, SharingStrategy : SharingStrategyProtocol, Result> SharedSequence<
         try {
           func(it).source
         } catch (e: Throwable) {
+          reportError(e)
           errorValue.source
         }
       }
@@ -60,6 +63,7 @@ fun <Element, SharingStrategy : SharingStrategyProtocol, Result> SharedSequence<
         try {
           func(it).source
         } catch (e: Throwable) {
+          reportError(e)
           errorValue.source
         }
       }
@@ -74,6 +78,7 @@ fun <Element, SharingStrategy : SharingStrategyProtocol, Result> SharedSequence<
         try {
           func(it)
         } catch (e: Throwable) {
+          reportError(e)
           errorValue
         }
       }
@@ -91,6 +96,7 @@ fun <Element, SharingStrategy : SharingStrategyProtocol> SharedSequence<SharingS
         try {
           comparator(e1, e2)
         } catch (e: Throwable) {
+          reportError(e)
           errorValue
         }
       }
@@ -105,6 +111,7 @@ fun <Element, SharingStrategy : SharingStrategyProtocol, Result> SharedSequence<
         try {
           keySelector(e)
         } catch (e: Throwable) {
+          reportError(e)
           errorValue
         }
       }
@@ -124,6 +131,7 @@ fun <Element, SharingStrategy : SharingStrategyProtocol, Result> SharedSequence<
         try {
           accumulator(r, t)
         } catch (e: Throwable) {
+          reportError(e)
           errorValue
         }
       }
@@ -137,6 +145,7 @@ fun <Element, SharingStrategy : SharingStrategyProtocol> SharedSequence<SharingS
         try {
           onNext(it)
         } catch (e: Throwable) {
+          reportError(e)
         }
       }
   return SharedSequence(source, this.sharingStrategy)

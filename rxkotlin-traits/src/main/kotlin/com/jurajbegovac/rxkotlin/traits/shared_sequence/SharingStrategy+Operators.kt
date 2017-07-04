@@ -23,6 +23,7 @@ fun <SharingStrategy : SharingStrategyProtocol, Element> SharingStrategy.defer(
     try {
       factory().source
     } catch (e: Exception) {
+      reportError(e)
       errorValue.source
     }
   }
@@ -44,6 +45,7 @@ fun <SharingStrategy : SharingStrategyProtocol, Element, Result> SharingStrategy
     try {
       zipFunction(it)
     } catch (e: Throwable) {
+      reportError(e)
       errorValue
     }
   }
