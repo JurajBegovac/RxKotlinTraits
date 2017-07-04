@@ -1,6 +1,7 @@
 package com.jurajbegovac.rxkotlin.traits.shared_sequence
 
 import com.jurajbegovac.rxkotlin.traits.observable.debug
+import rx.Observable
 
 /** Created by juraj begovac on 13/06/2017. */
 
@@ -37,7 +38,7 @@ fun <Element, SharingStrategy : SharingStrategyProtocol> SharedSequence<SharingS
   return SharedSequence(source, this.sharingStrategy)
 }
 
-fun <Element, SharingStrategy : SharingStrategyProtocol, Result> SharedSequence<SharingStrategy, Element>.flatmap(
+fun <Element, SharingStrategy : SharingStrategyProtocol, Result> SharedSequence<SharingStrategy, Element>.flatMap(
     errorValue: SharedSequence<SharingStrategy, Result> = this.sharingStrategy.empty(),
     func: (Element) -> SharedSequence<SharingStrategy, Result>): SharedSequence<SharingStrategy, Result> {
   val source = this.source
@@ -66,7 +67,7 @@ fun <Element, SharingStrategy : SharingStrategyProtocol, Result> SharedSequence<
 }
 
 fun <Element, SharingStrategy : SharingStrategyProtocol, Result> SharedSequence<SharingStrategy, Element>.flatMapIterable(
-    errorValue: Iterable<Result> = emptyList(),
+    errorValue: Iterable<Result> = emptyList<Result>(),
     func: (Element) -> Iterable<Result>): SharedSequence<SharingStrategy, Result> {
   val source = this.source
       .flatMapIterable {
@@ -89,6 +90,20 @@ fun <Element, SharingStrategy : SharingStrategyProtocol> SharedSequence<SharingS
       .distinctUntilChanged { e1, e2 ->
         try {
           comparator(e1, e2)
+        } catch (e: Throwable) {
+          errorValue
+        }
+      }
+  return SharedSequence(source, this.sharingStrategy)
+}
+
+fun <Element, SharingStrategy : SharingStrategyProtocol, Result> SharedSequence<SharingStrategy, Element>.distinctUntilChanged(
+    errorValue: Boolean = false,
+    keySelector: (Element) -> Result): SharedSequence<SharingStrategy, Element> {
+  val source = this.source
+      .distinctUntilChanged { e ->
+        try {
+          keySelector(e)
         } catch (e: Throwable) {
           errorValue
         }

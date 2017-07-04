@@ -14,4 +14,4 @@ fun <T> next(delay: Long, value: T) = Recorded(delay, Event.Next(value))
 fun <T> error(delay: Long, error: Throwable): Recorded<Event<T>> = Recorded(delay,
                                                                             Event.Error(error))
 
-fun complete(delay: Long) = Recorded(delay, Event.Completed)
+fun complete(delay: Long): Recorded<Event<Unit>> = Recorded(delay, Event.Completed)

@@ -30,7 +30,10 @@ fun <SharingStrategy : SharingStrategyProtocol, Element> SharingStrategy.defer(
 }
 
 
-fun <SharingStrategy : SharingStrategyProtocol, Element> SharingStrategy.merge(sources: Iterable<SharedSequence<SharingStrategy, out Element>>) =
+fun <SharingStrategy : SharingStrategyProtocol, Element> SharingStrategy.merge(vararg sources: SharedSequence<SharingStrategy, Element>) =
+    SharedSequence(Observable.merge(sources.map { it.source }), this)
+
+fun <SharingStrategy : SharingStrategyProtocol, Element> SharingStrategy.merge(sources: Iterable<SharedSequence<SharingStrategy, Element>>) =
     SharedSequence(Observable.merge(sources.map { it.source }), this)
 
 fun <SharingStrategy : SharingStrategyProtocol, Element, Result> SharingStrategy.zip(
