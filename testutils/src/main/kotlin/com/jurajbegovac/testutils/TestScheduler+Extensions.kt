@@ -1,4 +1,4 @@
-package common
+package com.jurajbegovac.testutils
 
 import rx.Notification
 import rx.Observable

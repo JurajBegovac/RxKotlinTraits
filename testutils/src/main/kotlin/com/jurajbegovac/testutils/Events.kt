@@ -1,4 +1,4 @@
-package common
+package com.jurajbegovac.testutils
 
 /** Created by juraj on 25/05/2017. */
 

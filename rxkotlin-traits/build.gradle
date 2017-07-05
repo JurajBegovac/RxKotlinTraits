@@ -34,16 +34,23 @@ dependencies {
 
     // Rx
     compile 'io.reactivex:rxjava:1.2.10'
-    compile ('io.reactivex:rxandroid:1.2.1') {
+    compile('io.reactivex:rxandroid:1.2.1') {
         exclude module: 'rxjava'
     }
-    compile ('io.reactivex:rxkotlin:1.0.0') {
+    compile('io.reactivex:rxkotlin:1.0.0') {
         exclude module: 'rxjava'
         exclude module: 'kotlin-stdlib'
         exclude module: 'kotlin-runtime'
     }
 
     testCompile 'junit:junit:4.12'
+    testCompile(project(':testutils')) {
+        exclude group: 'com.android.support'
+        exclude group: 'io.reactivex'
+        exclude group: 'junit'
+        exclude module: 'kotlin-stdlib'
+        exclude module: 'kotlin-runtime'
+    }
 
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'

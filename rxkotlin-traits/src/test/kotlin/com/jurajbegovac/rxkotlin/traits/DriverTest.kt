@@ -1,9 +1,8 @@
 package com.jurajbegovac.rxkotlin.traits
 
-import com.jurajbegovac.rxkotlin.common.TestSchedulerRule
 import com.jurajbegovac.rxkotlin.traits.driver.*
 import com.jurajbegovac.rxkotlin.traits.shared_sequence.*
-import common.*
+import com.jurajbegovac.testutils.*
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals

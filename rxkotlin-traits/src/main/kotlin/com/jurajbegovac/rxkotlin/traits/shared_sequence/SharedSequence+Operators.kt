@@ -126,6 +126,7 @@ fun <Element, SharingStrategy : SharingStrategyProtocol, Result> SharedSequence<
     errorValue: Result,
     initialValue: Result,
     accumulator: (Result, Element) -> Result): SharedSequence<SharingStrategy, Result> {
+  
   val source = this.source
       .scan(initialValue) { r, t ->
         try {

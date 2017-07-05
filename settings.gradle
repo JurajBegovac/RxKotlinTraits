@@ -1,1 +1,1 @@
-include ':sample', ':rxkotlin-traits'
+include ':sample', ':rxkotlin-traits', ':testutils'

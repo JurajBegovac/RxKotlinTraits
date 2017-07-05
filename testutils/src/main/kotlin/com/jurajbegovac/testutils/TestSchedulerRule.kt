@@ -1,4 +1,4 @@
-package com.jurajbegovac.rxkotlin.common
+package com.jurajbegovac.testutils
 
 import org.junit.rules.TestRule
 import org.junit.runner.Description
