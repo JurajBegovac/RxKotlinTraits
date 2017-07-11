@@ -1,7 +1,7 @@
 package com.jurajbegovac.rxkotlin.traits.shared_sequence
 
-import rx.Observable
-import rx.Scheduler
+import io.reactivex.Observable
+import io.reactivex.Scheduler
 
 /** Created by juraj begovac on 06/06/2017. */
 

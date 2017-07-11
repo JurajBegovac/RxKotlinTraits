@@ -1,14 +1,13 @@
 package com.jurajbegovac.testutils
 
+import io.reactivex.Scheduler
+import io.reactivex.android.plugins.RxAndroidPlugins
+import io.reactivex.internal.schedulers.ExecutorScheduler
+import io.reactivex.plugins.RxJavaPlugins
+import io.reactivex.schedulers.TestScheduler
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import rx.Scheduler
-import rx.android.plugins.RxAndroidPlugins
-import rx.android.plugins.RxAndroidSchedulersHook
-import rx.internal.schedulers.ExecutorScheduler
-import rx.plugins.RxJavaHooks
-import rx.schedulers.TestScheduler
 
 /** Created by juraj begovac on 09/06/2017. */
 
@@ -24,15 +23,12 @@ class TestSchedulerRule : TestRule {
     return object : Statement() {
       @Throws(Throwable::class)
       override fun evaluate() {
-        RxJavaHooks.reset()
-        RxJavaHooks.setOnIOScheduler { testScheduler }
-        RxJavaHooks.setOnComputationScheduler { testScheduler }
-        RxJavaHooks.setOnNewThreadScheduler { testScheduler }
-        RxAndroidPlugins.getInstance().reset()
-        RxAndroidPlugins.getInstance().registerSchedulersHook(object : RxAndroidSchedulersHook() {
-          override fun getMainThreadScheduler(): Scheduler = immediate
-        })
-        
+        RxJavaPlugins.reset()
+        RxJavaPlugins.setInitIoSchedulerHandler { testScheduler }
+        RxJavaPlugins.setInitComputationSchedulerHandler { testScheduler }
+        RxJavaPlugins.setInitNewThreadSchedulerHandler { testScheduler }
+        RxAndroidPlugins.reset()
+        RxAndroidPlugins.setInitMainThreadSchedulerHandler { immediate }
         base.evaluate()
       }
     }

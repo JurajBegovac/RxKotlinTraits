@@ -1,24 +1,32 @@
 package com.jurajbegovac.testutils
 
-import rx.Subscriber
-import rx.schedulers.TestScheduler
+import io.reactivex.disposables.Disposable
+import io.reactivex.observers.TestObserver
+import io.reactivex.schedulers.TestScheduler
+import java.util.concurrent.TimeUnit
 
 /** Created by juraj on 24/05/2017. */
-class MyTestSubscriber<T>(private val scheduler: TestScheduler) : Subscriber<T>() {
+class MyTestSubscriber<T>(private val scheduler: TestScheduler) : TestObserver<T>() {
+  override fun onSubscribe(d: Disposable?) {
+  }
   
-  private var values: List<Recorded<Event<T>>> = emptyList()
+  private var recordedEvents: List<Recorded<Event<T>>> = emptyList()
   
-  override fun onCompleted() {
-    values += Recorded(scheduler.now(), Event.Completed as Event<T>)
+  override fun onComplete() {
+    super.onComplete()
+    recordedEvents += Recorded(scheduler.now(TimeUnit.MILLISECONDS), Event.Complete as Event<T>)
   }
   
   override fun onError(e: Throwable?) {
-    values += Recorded(scheduler.now(), Event.Error(e ?: Error("Unknown")))
+    super.onError(e)
+    recordedEvents += Recorded(scheduler.now(TimeUnit.MILLISECONDS),
+                               Event.Error(e ?: Error("Unknown")))
   }
   
   override fun onNext(t: T) {
-    values += Recorded(scheduler.now(), Event.Next(t))
+    super.onNext(t)
+    recordedEvents += Recorded(scheduler.now(TimeUnit.MILLISECONDS), Event.Next(t))
   }
   
-  fun events() = values
+  fun recordedEvents() = recordedEvents
 }

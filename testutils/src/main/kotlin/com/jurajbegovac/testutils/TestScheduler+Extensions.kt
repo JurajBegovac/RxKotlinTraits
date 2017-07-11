@@ -1,10 +1,10 @@
 package com.jurajbegovac.testutils
 
-import rx.Notification
-import rx.Observable
-import rx.Subscription
-import rx.lang.kotlin.merge
-import rx.schedulers.TestScheduler
+import io.reactivex.Notification
+import io.reactivex.Observable
+import io.reactivex.disposables.Disposable
+import io.reactivex.rxkotlin.merge
+import io.reactivex.schedulers.TestScheduler
 import java.util.concurrent.TimeUnit
 
 /** Created by juraj on 23/05/2017. */
@@ -15,13 +15,13 @@ fun <T> TestScheduler.createColdObservable(vararg events: Recorded<Event<T>>): O
           .map {
             when (value) {
               is Event.Next -> Notification.createOnNext(value.value)
-              is Event.Completed -> Notification.createOnCompleted()
+              is Event.Complete -> Notification.createOnComplete()
               is Event.Error -> Notification.createOnError(value.error)
             }
           }
     }.merge().dematerialize()
 
-fun TestScheduler.scheduleAt(delay: Long, action: () -> Unit): Subscription =
+fun TestScheduler.scheduleAt(delay: Long, action: () -> Unit): Disposable =
     this.createWorker().schedule(action, delay, TimeUnit.MILLISECONDS)
 
 fun TestScheduler.advanceTimeBy(delay: Long) =

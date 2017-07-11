@@ -3,16 +3,15 @@ package com.jurajbegovac.rxkotlin.traits
 import com.jurajbegovac.rxkotlin.traits.driver.*
 import com.jurajbegovac.rxkotlin.traits.shared_sequence.*
 import com.jurajbegovac.testutils.*
+import io.reactivex.Observable
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.TestScheduler
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import rx.Observable
-import rx.Subscription
-import rx.schedulers.TestScheduler
-import rx.subscriptions.Subscriptions
 
 /** Created by juraj begovac on 06/06/2017. */
 
@@ -31,12 +30,12 @@ class DriverTest {
   
   @After
   fun tearDown() {
-    this.observer.unsubscribe()
+    this.observer.dispose()
   }
   
   fun observableRange(): Observable<Int> =
       Observable
-          .range(1, 10, scheduler)
+          .range(1, 10)
   
   @Test
   fun driverCompleteOnError() {
@@ -52,7 +51,7 @@ class DriverTest {
     this.scheduler.advanceTimeBy(10)
     
     assertEquals(listOf(next(0, 1), next(0, 2), next(0, 3), next(0, 4), complete(0)),
-                 observer.events())
+                 observer.recordedEvents())
   }
   
   @Test
@@ -71,7 +70,7 @@ class DriverTest {
     this.scheduler.advanceTimeBy(10)
     
     assertEquals(listOf(next(0, 1), next(0, 2), next(0, 3), next(0, 4), next(0, 7), complete(0)),
-                 observer.events())
+                 observer.recordedEvents())
   }
   
   @Test
@@ -102,7 +101,7 @@ class DriverTest {
                         next(0, 9),
                         next(0, 10),
                         complete(0)),
-                 observer.events())
+                 observer.recordedEvents())
   }
   
   @Test
@@ -123,7 +122,7 @@ class DriverTest {
                              next(0, 8),
                              next(0, 9),
                              next(0, 10),
-                             complete(0)), observer.events())
+                             complete(0)), observer.recordedEvents())
   }
   
   @Test
@@ -138,7 +137,7 @@ class DriverTest {
     }
     this.scheduler.advanceTimeBy(10)
     
-    assertEquals(listOf(complete(0)), observer.events())
+    assertEquals(listOf(complete(0)), observer.recordedEvents())
   }
   
   @Test
@@ -153,7 +152,7 @@ class DriverTest {
     }
     this.scheduler.advanceTimeBy(10)
     
-    assertEquals(listOf(complete(0)), observer.events())
+    assertEquals(listOf(complete(0)), observer.recordedEvents())
   }
   
   @Test
@@ -176,7 +175,7 @@ class DriverTest {
                         next(0, 9),
                         next(0, 10),
                         complete(0)),
-                 observer.events())
+                 observer.recordedEvents())
   }
   
   @Test
@@ -193,7 +192,7 @@ class DriverTest {
     }
     this.scheduler.advanceTimeBy(10)
     assertEquals(listOf(next(0, 1), next(0, 2), next(0, 3), next(0, 4), complete(0)),
-                 observer.events())
+                 observer.recordedEvents())
   }
   
   @Test
@@ -212,7 +211,7 @@ class DriverTest {
     this.scheduler.advanceTimeBy(10)
     
     assertEquals(listOf(next(0, 1), next(0, 2), next(0, 3), next(0, 4), next(0, 7), complete(0)),
-                 observer.events())
+                 observer.recordedEvents())
   }
   
   @Test
@@ -239,7 +238,7 @@ class DriverTest {
                         next(0, 8),
                         next(0, 9),
                         next(0, 10),
-                        complete(0)), observer.events())
+                        complete(0)), observer.recordedEvents())
   }
   
   @Test
@@ -264,7 +263,7 @@ class DriverTest {
                         next(0, 8),
                         next(0, 9),
                         next(0, 10),
-                        complete(0)), observer.events())
+                        complete(0)), observer.recordedEvents())
   }
   
   @Test
@@ -289,7 +288,7 @@ class DriverTest {
                         next(0, 8),
                         next(0, 9),
                         next(0, 10),
-                        complete(0)), observer.events())
+                        complete(0)), observer.recordedEvents())
   }
   
   @Test
@@ -297,9 +296,10 @@ class DriverTest {
     val observer1 = scheduler.createMyTestSubscriber<Int>()
     val observer2 = scheduler.createMyTestSubscriber<Int>()
     val observer3 = scheduler.createMyTestSubscriber<Int>()
-    var subscription1: Subscription = Subscriptions.empty()
-    var subscription2: Subscription = Subscriptions.empty()
-    var subscription3: Subscription = Subscriptions.empty()
+    
+    var disposable1: Disposable? = null
+    var disposable2: Disposable? = null
+    var disposable3: Disposable? = null
     
     val coldObservable = scheduler.createColdObservable(
         next(10, 0),
@@ -311,27 +311,39 @@ class DriverTest {
     
     val driver = coldObservable.asDriver(onErrorJustReturn = -1)
     
-    scheduler.scheduleAt(200) { subscription1 = driver.asObservable().subscribe(observer1) }
+    scheduler.scheduleAt(200) {
+      disposable1 = driver.asObservable().subscribe({ observer1.onNext(it) },
+                                                    { observer1.onError(it) },
+                                                    { observer1.onComplete() })
+    }
     
-    scheduler.scheduleAt(225) { subscription2 = driver.asObservable().subscribe(observer2) }
+    scheduler.scheduleAt(225) {
+      disposable2 = driver.asObservable().subscribe({ observer2.onNext(it) },
+                                                    { observer2.onError(it) },
+                                                    { observer2.onComplete() })
+    }
     
-    scheduler.scheduleAt(235) { subscription1.unsubscribe() }
+    scheduler.scheduleAt(235) { disposable1!!.dispose() }
     
-    scheduler.scheduleAt(260) { subscription2.unsubscribe() }
+    scheduler.scheduleAt(260) { disposable2!!.dispose() }
     
     // resubscription
-    scheduler.scheduleAt(260) { subscription3 = driver.asObservable().subscribe(observer3) }
+    scheduler.scheduleAt(260) {
+      disposable3 = driver.asObservable().subscribe({ observer3.onNext(it) },
+                                                    { observer3.onError(it) },
+                                                    { observer3.onComplete() })
+    }
     
-    scheduler.scheduleAt(285) { subscription3.unsubscribe() }
+    scheduler.scheduleAt(285) { disposable3!!.dispose() }
     
     scheduler.advanceTimeBy(1000)
     
-    assertEquals(listOf(next(210, 0), next(220, 1), next(230, 2)), observer1.events())
+    assertEquals(listOf(next(210, 0), next(220, 1), next(230, 2)), observer1.recordedEvents())
     
     assertEquals(listOf(next(225, 1), next(230, 2), next(240, 3), next(250, -1), complete(250)),
-                 observer2.events())
+                 observer2.recordedEvents())
     
-    assertEquals(listOf(next(270, 0), next(280, 1)), observer3.events())
+    assertEquals(listOf(next(270, 0), next(280, 1)), observer3.recordedEvents())
   }
   
   @Test
@@ -339,9 +351,10 @@ class DriverTest {
     val observer1 = scheduler.createMyTestSubscriber<Int>()
     val observer2 = scheduler.createMyTestSubscriber<Int>()
     val observer3 = scheduler.createMyTestSubscriber<Int>()
-    var subscription1: Subscription = Subscriptions.empty()
-    var subscription2: Subscription = Subscriptions.empty()
-    var subscription3: Subscription = Subscriptions.empty()
+    
+    var disposable1: Disposable? = null
+    var disposable2: Disposable? = null
+    var disposable3: Disposable? = null
     
     val coldObservable = scheduler.createColdObservable(
         next(10, 0),
@@ -353,27 +366,39 @@ class DriverTest {
     
     val driver = coldObservable.asDriver(onErrorJustReturn = -1)
     
-    scheduler.scheduleAt(200) { subscription1 = driver.asObservable().subscribe(observer1) }
+    scheduler.scheduleAt(200) {
+      disposable1 = driver.asObservable().subscribe({ observer1.onNext(it) },
+                                                    { observer1.onError(it) },
+                                                    { observer1.onComplete() })
+    }
     
-    scheduler.scheduleAt(225) { subscription2 = driver.asObservable().subscribe(observer2) }
+    scheduler.scheduleAt(225) {
+      disposable2 = driver.asObservable().subscribe({ observer2.onNext(it) },
+                                                    { observer2.onError(it) },
+                                                    { observer2.onComplete() })
+    }
     
-    scheduler.scheduleAt(235) { subscription1.unsubscribe() }
+    scheduler.scheduleAt(235) { disposable1!!.dispose() }
     
-    scheduler.scheduleAt(260) { subscription2.unsubscribe() }
+    scheduler.scheduleAt(260) { disposable2!!.dispose() }
     
     // resubscription
-    scheduler.scheduleAt(260) { subscription3 = driver.asObservable().subscribe(observer3) }
+    scheduler.scheduleAt(260) {
+      disposable3 = driver.asObservable().subscribe({ observer3.onNext(it) },
+                                                    { observer3.onError(it) },
+                                                    { observer3.onComplete() })
+    }
     
-    scheduler.scheduleAt(285) { subscription3.unsubscribe() }
+    scheduler.scheduleAt(285) { disposable3!!.dispose() }
     
     scheduler.advanceTimeBy(1000)
     
-    assertEquals(listOf(next(210, 0), next(220, 1), next(230, 2)), observer1.events())
+    assertEquals(listOf(next(210, 0), next(220, 1), next(230, 2)), observer1.recordedEvents())
     
     assertEquals(listOf(next(225, 1), next(230, 2), next(240, 3), complete(250)),
-                 observer2.events())
+                 observer2.recordedEvents())
     
-    assertEquals(listOf(next(270, 0), next(280, 1)), observer3.events())
+    assertEquals(listOf(next(270, 0), next(280, 1)), observer3.recordedEvents())
   }
   
   @Test
@@ -385,7 +410,8 @@ class DriverTest {
     
     scheduler.advanceTimeBy(1)
     
-    assertEquals(listOf(next(0, 1), next(0, 2), next(0, -1), complete(0)), observer.events())
+    assertEquals(listOf(next(0, 1), next(0, 2), next(0, -1), complete(0)),
+                 observer.recordedEvents())
   }
   
   @Test
@@ -397,7 +423,8 @@ class DriverTest {
     
     scheduler.advanceTimeBy(1)
     
-    assertEquals(listOf(next(0, 1), next(0, 2), next(0, -1), complete(0)), observer.events())
+    assertEquals(listOf(next(0, 1), next(0, 2), next(0, -1), complete(0)),
+                 observer.recordedEvents())
   }
   
   @Test
@@ -409,7 +436,7 @@ class DriverTest {
     
     scheduler.advanceTimeBy(1)
     
-    assertEquals(listOf(next(0, 1), next(0, 2), complete(0)), observer.events())
+    assertEquals(listOf(next(0, 1), next(0, 2), complete(0)), observer.recordedEvents())
   }
   
   @Test
@@ -421,7 +448,8 @@ class DriverTest {
     
     scheduler.advanceTimeBy(1)
     
-    assertEquals(listOf(next(0, 1), next(0, 2), next(0, -1), complete(0)), observer.events())
+    assertEquals(listOf(next(0, 1), next(0, 2), next(0, -1), complete(0)),
+                 observer.recordedEvents())
   }
   
   @Test
@@ -433,7 +461,7 @@ class DriverTest {
     
     scheduler.advanceTimeBy(1)
     
-    assertEquals(listOf(next(0, 2), next(0, 3), next(0, 0), complete(0)), observer.events())
+    assertEquals(listOf(next(0, 2), next(0, 3), next(0, 0), complete(0)), observer.recordedEvents())
   }
   
   @Test
@@ -445,7 +473,7 @@ class DriverTest {
     
     scheduler.advanceTimeBy(1)
     
-    assertEquals(listOf(next(0, 2), complete(0)), observer.events())
+    assertEquals(listOf(next(0, 2), complete(0)), observer.recordedEvents())
   }
   
   @Test
@@ -481,7 +509,7 @@ class DriverTest {
                         next(1, 11),
                         next(1, -3),
                         complete(2)),
-                 observer.events())
+                 observer.recordedEvents())
   }
   
   @Test
@@ -515,7 +543,7 @@ class DriverTest {
                         next(1, 10),
                         next(1, -3),
                         complete(2)),
-                 observer.events())
+                 observer.recordedEvents())
   }
   
   @Test
@@ -535,7 +563,7 @@ class DriverTest {
     scheduler.advanceTimeBy(1)
     
     assertEquals(listOf(next(0, 1), next(0, 2), next(0, -1), complete(0)),
-                 observer.events())
+                 observer.recordedEvents())
     val expectedEvents = arrayOf(1, 2, -1)
     assertArrayEquals(expectedEvents, events)
   }
@@ -553,7 +581,7 @@ class DriverTest {
     scheduler.advanceTimeBy(1)
     
     assertEquals(listOf(next(0, 1), next(0, 2), next(0, -1), complete(0)),
-                 observer.events())
+                 observer.recordedEvents())
   }
   
   @Test
@@ -569,7 +597,7 @@ class DriverTest {
     scheduler.advanceTimeBy(1)
     
     assertEquals(listOf(next(0, 1), next(0, 2), next(0, -1), complete(0)),
-                 observer.events())
+                 observer.recordedEvents())
   }
   
   @Test
@@ -585,7 +613,7 @@ class DriverTest {
     scheduler.advanceTimeBy(1)
     
     assertEquals(listOf(next(0, 1), next(0, 2), next(0, -1), complete(0)),
-                 observer.events())
+                 observer.recordedEvents())
   }
   
   @Test
@@ -602,7 +630,7 @@ class DriverTest {
     scheduler.advanceTimeBy(1)
     
     assertEquals(listOf(next(0, 2), next(0, 3), next(0, 0), complete(0)),
-                 observer.events())
+                 observer.recordedEvents())
   }
   
   @Test
@@ -613,18 +641,26 @@ class DriverTest {
         { driver -> DriverSharingStrategy.merge(arrayListOf(driver)) }
     )
     
+    val observers = ArrayList<MyTestSubscriber<Int>>(factories.size)
+    
     factories.forEach {
       val observable = scheduler.createColdObservable(next(0, 1),
                                                       next(0, 2),
                                                       error<Int>(0, Error("Test")))
       val driver = it(observable.asDriver(onErrorJustReturn = -1))
+      
+      val observer = scheduler.createMyTestSubscriber<Int>()
       driver.drive(observer)
+      
+      observers.add(observer)
     }
     
     scheduler.advanceTimeBy(1)
     
-    assertEquals(listOf(next(0, 1), next(0, 2), next(0, -1), complete(0)),
-                 observer.events())
+    observers.forEach {
+      assertEquals(listOf(next(0, 1), next(0, 2), next(0, -1), complete(0)),
+                   it.recordedEvents())
+    }
   }
   
   @Test
@@ -641,7 +677,7 @@ class DriverTest {
     scheduler.advanceTimeBy(1)
     
     assertEquals(listOf(next(0, 2), next(0, 3), next(0, 0), complete(0)),
-                 observer.events())
+                 observer.recordedEvents())
   }
   
   @Test
@@ -657,7 +693,7 @@ class DriverTest {
     scheduler.advanceTimeBy(1)
     
     assertEquals(listOf(next(0, 0), next(0, 1), next(0, 3), next(0, 2), complete(0)),
-                 observer.events())
+                 observer.recordedEvents())
   }
   
   @Test
@@ -673,6 +709,6 @@ class DriverTest {
     scheduler.advanceTimeBy(1)
     
     assertEquals(listOf(next(0, 0), next(0, 1), next(0, 2), next(0, -1), complete(0)),
-                 observer.events())
+                 observer.recordedEvents())
   }
 }

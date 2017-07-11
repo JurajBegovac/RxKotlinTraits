@@ -6,8 +6,8 @@ import com.jurajbegovac.rxkotlin.traits.driver.asDriver
 import com.jurajbegovac.rxkotlin.traits.shared_sequence.just
 import com.jurajbegovac.testutils.createColdObservable
 import com.jurajbegovac.testutils.next
-import rx.Observable
-import rx.schedulers.TestScheduler
+import io.reactivex.Observable
+import io.reactivex.schedulers.TestScheduler
 
 /**
  * Created by juraj on 23/05/2017.

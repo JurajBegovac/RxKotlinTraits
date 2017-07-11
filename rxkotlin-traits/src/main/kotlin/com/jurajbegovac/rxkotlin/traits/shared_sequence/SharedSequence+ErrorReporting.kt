@@ -1,6 +1,6 @@
 package com.jurajbegovac.rxkotlin.traits.shared_sequence
 
-import rx.subjects.PublishSubject
+import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.locks.ReentrantLock
 
 /** Created by juraj begovac on 04/07/2017. */

@@ -1,6 +1,6 @@
 package com.jurajbegovac.rxkotlin.traits.shared_sequence
 
-import rx.Observable
+import io.reactivex.Observable
 
 /** Created by juraj begovac on 08/06/2017. */
 
@@ -29,7 +29,6 @@ fun <SharingStrategy : SharingStrategyProtocol, Element> SharingStrategy.defer(
   }
   return SharedSequence(source, this)
 }
-
 
 fun <SharingStrategy : SharingStrategyProtocol, Element> SharingStrategy.merge(vararg sources: SharedSequence<SharingStrategy, Element>) =
     SharedSequence(Observable.merge(sources.map { it.source }), this)

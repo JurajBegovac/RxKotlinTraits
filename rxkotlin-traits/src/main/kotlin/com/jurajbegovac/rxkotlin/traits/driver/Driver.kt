@@ -2,9 +2,9 @@ package com.jurajbegovac.rxkotlin.traits.driver
 
 import com.jurajbegovac.rxkotlin.traits.shared_sequence.SharedSequence
 import com.jurajbegovac.rxkotlin.traits.shared_sequence.SharingStrategyProtocol
-import rx.Observable
-import rx.Scheduler
-import rx.android.schedulers.AndroidSchedulers
+import io.reactivex.Observable
+import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
 
 /** Created by juraj begovac on 06/06/2017. */
 

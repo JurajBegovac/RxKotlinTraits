@@ -5,20 +5,20 @@ import com.jurajbegovac.rxkotlin.traits.driver.DriverSharingStrategy
 import com.jurajbegovac.rxkotlin.traits.driver.asDriverCompleteOnError
 import com.jurajbegovac.rxkotlin.traits.driver.drive
 import com.jurajbegovac.rxkotlin.traits.shared_sequence.*
-import rx.Subscription
-import rx.subjects.PublishSubject
+import io.reactivex.disposables.Disposable
+import io.reactivex.subjects.PublishSubject
 
 /** Created by juraj on 23/05/2017. */
 
 class DictionaryStateMachine<Key, State>(val effectsForKey: (Key) -> (Driver<State>) -> Driver<Command<Key, State>>) {
   private val commands: PublishSubject<Pair<Key, State>> = PublishSubject.create()
-  private val stateSubscription: Subscription
+  private val stateSubscription: Disposable
   
   val state: Driver<Map<Key, State>>
   
   init {
     val userCommandsFeedback: (Driver<Map<Key, State>>) -> Driver<Command<Key, State>> = {
-      this.commands.asObservable().map<Command<Key, State>> {
+      this.commands.map<Command<Key, State>> {
         Command.Update(it)
       }
           .asDriverCompleteOnError()
@@ -38,7 +38,7 @@ class DictionaryStateMachine<Key, State>(val effectsForKey: (Key) -> (Driver<Sta
   }
   
   fun dispose() {
-    this.stateSubscription.unsubscribe()
+    this.stateSubscription.dispose()
   }
 }
 

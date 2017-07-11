@@ -4,9 +4,9 @@ import com.jurajbegovac.rxkotlin.traits.driver.Driver
 import com.jurajbegovac.rxkotlin.traits.driver.DriverSharingStrategy
 import com.jurajbegovac.rxkotlin.traits.driver.asDriverCompleteOnError
 import com.jurajbegovac.rxkotlin.traits.shared_sequence.*
-import rx.Observable
-import rx.Scheduler
-import rx.subjects.ReplaySubject
+import io.reactivex.Observable
+import io.reactivex.Scheduler
+import io.reactivex.subjects.ReplaySubject
 
 /** Created by juraj on 23/05/2017. */
 

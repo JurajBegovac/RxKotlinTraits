@@ -6,7 +6,7 @@ import com.jurajbegovac.rxkotlin.traits.shared_sequence.empty
 import com.jurajbegovac.rxkotlin.traits.shared_sequence.flatMap
 import com.jurajbegovac.rxkotlin.traits.shared_sequence.just
 import com.jurajbegovac.rxkotlin.traits.shared_sequence.scan
-import rx.Observable
+import io.reactivex.Observable
 
 /** Created by juraj begovac on 04/07/2017. */
 

@@ -4,15 +4,15 @@ import com.jurajbegovac.rxkotlin.traits.driver.drive
 import com.jurajbegovac.testutils.TestSchedulerRule
 import com.jurajbegovac.testutils.advanceTimeBy
 import com.jurajbegovac.testutils.scheduleAt
+import io.reactivex.observers.TestObserver
+import io.reactivex.schedulers.TestScheduler
 import org.junit.*
-import rx.observers.TestSubscriber
-import rx.schedulers.TestScheduler
 
 /** Created by juraj on 23/05/2017. */
 
 class DictionaryStateMachineTests {
   var scheduler = TestScheduler()
-  var observer = TestSubscriber<Map<Int, TestState>>()
+  var observer = TestObserver<Map<Int, TestState>>()
   var stateMachine: DictionaryStateMachine<Int, TestState>? = null
   
   @get:Rule
@@ -21,14 +21,14 @@ class DictionaryStateMachineTests {
   @Before
   fun setUp() {
     this.scheduler = testSchedulerRule.testScheduler
-    this.observer = TestSubscriber()
+    this.observer = TestObserver()
     this.stateMachine = DictionaryStateMachine(TestStateFeedbackLoops(this.scheduler)::feedbackLoops)
     this.stateMachine!!.state.drive(this.observer)
   }
   
   @After
   fun tearDown() {
-    this.observer.unsubscribe()
+    this.observer.dispose()
     this.stateMachine!!.dispose()
   }
   
@@ -51,7 +51,7 @@ class DictionaryStateMachineTests {
         mapOf(Pair(1, TestState.Operation1(TestState.Operation.Work("op1")))),
         mapOf(Pair(1, TestState.Operation1(TestState.Operation.Finish))),
         mapOf()
-    ), this.observer.onNextEvents)
+    ), this.observer.values())
   }
   
   @Test
@@ -76,7 +76,7 @@ class DictionaryStateMachineTests {
         mapOf(Pair(1, TestState.Operation1(TestState.Operation.Work("op1")))),
         mapOf(Pair(1, TestState.Operation1(TestState.Operation.Finish))),
         mapOf()
-    ), this.observer.onNextEvents)
+    ), this.observer.values())
   }
   
   @Test
@@ -111,7 +111,7 @@ class DictionaryStateMachineTests {
         mapOf(Pair(1, TestState.Operation1(TestState.Operation.Work("op1")))),
         mapOf(Pair(1, TestState.Operation1(TestState.Operation.Finish))),
         mapOf()
-    ), this.observer.onNextEvents)
+    ), this.observer.values())
   }
   
   @Test
@@ -132,7 +132,7 @@ class DictionaryStateMachineTests {
         mapOf(Pair(1, TestState.Operation1(TestState.Operation.Work("op1")))),
         mapOf(Pair(1, TestState.Operation1(TestState.Operation.Finish))),
         mapOf()
-    ), this.observer.onNextEvents)
+    ), this.observer.values())
   }
   
   @Test
@@ -150,7 +150,7 @@ class DictionaryStateMachineTests {
         mapOf(Pair(1, TestState.Operation2(TestState.Operation.Work("op2")))),
         mapOf(Pair(1, TestState.Operation2(TestState.Operation.Finish))),
         mapOf()
-    ), this.observer.onNextEvents)
+    ), this.observer.values())
   }
   
   @Test
@@ -170,7 +170,7 @@ class DictionaryStateMachineTests {
         mapOf(Pair(2, TestState.Operation1(TestState.Operation.Work("op1")))),
         mapOf(Pair(2, TestState.Operation1(TestState.Operation.Finish))),
         mapOf()
-    ), this.observer.onNextEvents)
+    ), this.observer.values())
   }
   
   @Test
@@ -190,7 +190,7 @@ class DictionaryStateMachineTests {
         mapOf(Pair(2, TestState.Operation2(TestState.Operation.Work("op2")))),
         mapOf(Pair(2, TestState.Operation2(TestState.Operation.Finish))),
         mapOf()
-    ), this.observer.onNextEvents)
+    ), this.observer.values())
   }
   
   @Test
@@ -219,7 +219,7 @@ class DictionaryStateMachineTests {
         mapOf(Pair(2, TestState.Operation1(TestState.Operation.Work("op1")))),
         mapOf(Pair(2, TestState.Operation1(TestState.Operation.Finish))),
         mapOf()
-    ), this.observer.onNextEvents)
+    ), this.observer.values())
   }
   
   @Test
@@ -248,7 +248,7 @@ class DictionaryStateMachineTests {
         mapOf(Pair(2, TestState.Operation1(TestState.Operation.Work("op1")))),
         mapOf(Pair(2, TestState.Operation1(TestState.Operation.Finish))),
         mapOf()
-    ), this.observer.onNextEvents)
+    ), this.observer.values())
   }
   
   @Test
@@ -299,6 +299,7 @@ class DictionaryStateMachineTests {
         mapOf(Pair(2, TestState.Operation2(TestState.Operation.Work("op2")))),
         mapOf(Pair(2, TestState.Operation2(TestState.Operation.Finish))),
         mapOf()
-    ), this.observer.onNextEvents)
+    ), this.observer.values())
   }
+  
 }

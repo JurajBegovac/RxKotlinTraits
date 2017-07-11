@@ -6,7 +6,7 @@ group = 'com.github.JurajBegovac'
 
 // Manifest version information!
 class Version {
-    static major = 1
+    static major = 2
     static minor = 0
     static patch = 0
     static build = 1 // bump for dogfood builds, public betas, etc. - increase this every time
@@ -62,12 +62,12 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
     // Rx
-    compile 'io.reactivex:rxjava:1.2.10'
-    compile('io.reactivex:rxandroid:1.2.1') {
-        exclude module: 'rxjava'
+    compile 'io.reactivex.rxjava2:rxjava:2.1.0'
+    compile('io.reactivex.rxjava2:rxandroid:2.0.1') {
+        exclude module: 'rxjava2'
     }
-    compile('io.reactivex:rxkotlin:1.0.0') {
-        exclude module: 'rxjava'
+    compile('io.reactivex.rxjava2:rxkotlin:2.1.0') {
+        exclude module: 'rxjava2'
         exclude module: 'kotlin-stdlib'
         exclude module: 'kotlin-runtime'
     }
@@ -75,7 +75,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     testCompile(project(':testutils')) {
         exclude group: 'com.android.support'
-        exclude group: 'io.reactivex'
+        exclude group: 'io.reactivex.rxjava2'
         exclude group: 'junit'
         exclude module: 'kotlin-stdlib'
         exclude module: 'kotlin-runtime'
