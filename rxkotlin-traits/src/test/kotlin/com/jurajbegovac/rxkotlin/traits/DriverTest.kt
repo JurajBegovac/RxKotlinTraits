@@ -613,18 +613,26 @@ class DriverTest {
         { driver -> DriverSharingStrategy.merge(arrayListOf(driver)) }
     )
     
+    val observers = ArrayList<MyTestSubscriber<Int>>(factories.size)
+    
     factories.forEach {
       val observable = scheduler.createColdObservable(next(0, 1),
                                                       next(0, 2),
                                                       error<Int>(0, Error("Test")))
       val driver = it(observable.asDriver(onErrorJustReturn = -1))
+      
+      val observer = scheduler.createMyTestSubscriber<Int>()
       driver.drive(observer)
+      
+      observers.add(observer)
     }
     
     scheduler.advanceTimeBy(1)
     
-    assertEquals(listOf(next(0, 1), next(0, 2), next(0, -1), complete(0)),
-                 observer.events())
+    observers.forEach {
+      assertEquals(listOf(next(0, 1), next(0, 2), next(0, -1), complete(0)),
+                   it.events())
+    }
   }
   
   @Test
