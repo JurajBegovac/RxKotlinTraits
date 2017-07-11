@@ -1,5 +1,34 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'com.github.dcendents.android-maven'
+
+group = 'com.github.JurajBegovac'
+
+// Manifest version information!
+class Version {
+    static major = 1
+    static minor = 0
+    static patch = 0
+    static build = 1 // bump for dogfood builds, public betas, etc. - increase this every time
+
+    // Pre-release identifiers that are appended to version name.
+    // For example: ${versionName}-alpha, ${versionName}-alpha.1, ${versionName}-rc.2, etc.
+    static preReleaseIdentifier = '' // [alpha|beta|rc]
+    static preReleaseStage = 0
+
+    static asCode() {
+        return build
+    }
+
+    static asName() {
+        def name = "${major}.${minor}.${patch}"
+        if (preReleaseIdentifier?.trim()) {
+            name = "${name}-${preReleaseIdentifier}"
+            if (preReleaseStage > 0) name = "${name}.${preReleaseStage}"
+        }
+        return "${name} (${build})"
+    }
+}
 
 android {
     compileSdkVersion 25
@@ -13,8 +42,8 @@ android {
     defaultConfig {
         minSdkVersion 18
         targetSdkVersion 25
-        versionCode 1
-        versionName "1.0"
+        versionCode Version.asCode()
+        versionName Version.asName()
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
