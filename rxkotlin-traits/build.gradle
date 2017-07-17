@@ -8,8 +8,8 @@ group = 'com.github.JurajBegovac'
 class Version {
     static major = 1
     static minor = 0
-    static patch = 0
-    static build = 1 // bump for dogfood builds, public betas, etc. - increase this every time
+    static patch = 1
+    static build = 2 // bump for dogfood builds, public betas, etc. - increase this every time
 
     // Pre-release identifiers that are appended to version name.
     // For example: ${versionName}-alpha, ${versionName}-alpha.1, ${versionName}-rc.2, etc.

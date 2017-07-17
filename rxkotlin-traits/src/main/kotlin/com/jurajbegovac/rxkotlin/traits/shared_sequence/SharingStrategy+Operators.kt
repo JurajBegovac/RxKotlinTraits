@@ -30,7 +30,6 @@ fun <SharingStrategy : SharingStrategyProtocol, Element> SharingStrategy.defer(
   return SharedSequence(source, this)
 }
 
-
 fun <SharingStrategy : SharingStrategyProtocol, Element> SharingStrategy.merge(vararg sources: SharedSequence<SharingStrategy, Element>) =
     SharedSequence(Observable.merge(sources.map { it.source }), this)
 
